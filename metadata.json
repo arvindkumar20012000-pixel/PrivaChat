@@ -1,0 +1,6 @@
+{
+  "name": "SecretCouples - End-to-End Encrypted Private Chat",
+  "description": "Ultra-private, end-to-end encrypted couple chat app with photo/video sharing, self-destructing messages, stealth calculator disguise, and instant message deletion.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

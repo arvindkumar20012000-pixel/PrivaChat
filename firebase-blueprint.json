@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "Room": {
+      "title": "Room",
+      "description": "A secret encrypted chat room shared between two partners",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique room identifier",
+          "maxLength": 128
+        },
+        "created": {
+          "type": "number",
+          "description": "Creation timestamp in milliseconds"
+        },
+        "defaultTimer": {
+          "type": "number",
+          "description": "Default disappearing message timer in seconds"
+        },
+        "lastActivity": {
+          "type": "number",
+          "description": "Timestamp of most recent activity in room"
+        }
+      },
+      "required": ["id", "created"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "An end-to-end encrypted chat message with optional media and self-destruct settings",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message identifier",
+          "maxLength": 128
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Sender user ID or role ('you' | 'partner' or user uid)",
+          "maxLength": 128
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Sender display name",
+          "maxLength": 64
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Timestamp when message was created"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of media content",
+          "enum": ["text", "image", "video", "audio"]
+        },
+        "payload": {
+          "type": "object",
+          "description": "AES-GCM encrypted payload containing iv, ciphertext, and salt",
+          "properties": {
+            "iv": { "type": "string", "maxLength": 128 },
+            "ciphertext": { "type": "string", "maxLength": 2097152 },
+            "salt": { "type": "string", "maxLength": 128 }
+          },
+          "required": ["iv", "ciphertext", "salt"]
+        },
+        "isViewOnce": {
+          "type": "boolean",
+          "description": "Whether message is view-once media"
+        },
+        "viewed": {
+          "type": "boolean",
+          "description": "Whether view-once media was opened by recipient"
+        },
+        "viewedAt": {
+          "type": "number",
+          "description": "Timestamp when view-once was opened"
+        },
+        "disappearingTimer": {
+          "type": "number",
+          "description": "Self-destruct timer in seconds"
+        },
+        "expiresAt": {
+          "type": "number",
+          "description": "Absolute timestamp when message should be deleted"
+        }
+      },
+      "required": ["id", "senderId", "senderName", "timestamp", "type", "payload"]
+    },
+    "TestConnection": {
+      "title": "TestConnection",
+      "description": "Document used to verify connectivity to Firestore",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Connection status",
+          "maxLength": 32
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/Room" },
+      "description": "Stores room metadata, settings, and timers"
+    },
+    "/rooms/{roomId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Stores encrypted messages belonging to a room"
+    },
+    "/test/{testId}": {
+      "schema": { "$ref": "#/entities/TestConnection" },
+      "description": "Used to test database connection on application boot"
+    }
+  }
+}

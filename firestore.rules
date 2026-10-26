@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Default deny all unknown collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection testing endpoint
+    match /test/{testId} {
+      allow read, write: if isValidId(testId);
+    }
+
+    // Rooms collection
+    match /rooms/{roomId} {
+      allow get: if isValidId(roomId);
+      allow list: if false; // Room enumeration forbidden for privacy
+
+      allow create: if isValidId(roomId) 
+        && incoming().id == roomId
+        && incoming().created is number;
+
+      allow update: if isValidId(roomId)
+        && incoming().id == existing().id;
+
+      allow delete: if isValidId(roomId);
+
+      // Subcollection for room messages
+      match /messages/{messageId} {
+        allow get, list: if isValidId(roomId);
+
+        allow create: if isValidId(roomId)
+          && isValidId(messageId)
+          && incoming().id == messageId
+          && incoming().senderId is string && incoming().senderId.size() <= 128
+          && incoming().senderName is string && incoming().senderName.size() <= 64
+          && incoming().type in ['text', 'image', 'video', 'audio']
+          && incoming().payload is map
+          && incoming().payload.ciphertext is string && incoming().payload.ciphertext.size() <= 2097152
+          && incoming().payload.iv is string && incoming().payload.iv.size() <= 128
+          && incoming().payload.salt is string && incoming().payload.salt.size() <= 128;
+
+        allow update: if isValidId(roomId)
+          && isValidId(messageId)
+          && incoming().id == existing().id;
+
+        allow delete: if isValidId(roomId)
+          && isValidId(messageId);
+      }
+    }
+  }
+}
