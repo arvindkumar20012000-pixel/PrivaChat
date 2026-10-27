@@ -4,26 +4,115 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <script>
-      // Suppress Vite HMR WebSocket connection closed errors in AI Studio preview iframe
-      window.addEventListener('error', function(event) {
-        if (event && (
-          (event.message && (event.message.includes('WebSocket') || event.message.includes('vite'))) ||
-          (event.filename && event.filename.includes('@vite/client'))
-        )) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-          return true;
+      (function() {
+        // Intercept Vite HMR WebSocket in Cloud Run sandbox where HMR WebSocket is not supported
+        var NativeWebSocket = window.WebSocket;
+        if (NativeWebSocket) {
+          window.WebSocket = function(url, protocols) {
+            var isVite = (protocols === 'vite-hmr') ||
+              (Array.isArray(protocols) && protocols.includes('vite-hmr')) ||
+              (typeof url === 'string' && (url.includes('vite') || url.includes('token=')));
+            
+            if (isVite) {
+              var listeners = {};
+              var socket = {
+                url: String(url || ''),
+                readyState: 1, // WebSocket.OPEN
+                CONNECTING: 0,
+                OPEN: 1,
+                CLOSING: 2,
+                CLOSED: 3,
+                binaryType: 'blob',
+                bufferedAmount: 0,
+                extensions: '',
+                protocol: 'vite-hmr',
+                addEventListener: function(type, fn) {
+                  if (!listeners[type]) listeners[type] = [];
+                  listeners[type].push(fn);
+                  if (type === 'open') {
+                    setTimeout(function() {
+                      try { fn({ type: 'open' }); } catch(e) {}
+                    }, 0);
+                  }
+                },
+                removeEventListener: function(type, fn) {
+                  if (listeners[type]) {
+                    listeners[type] = listeners[type].filter(function(l) { return l !== fn; });
+                  }
+                },
+                dispatchEvent: function() { return true; },
+                send: function() {},
+                close: function() {
+                  socket.readyState = 3;
+                  if (listeners['close']) {
+                    listeners['close'].forEach(function(l) {
+                      try { l({ type: 'close', wasClean: true }); } catch(e) {}
+                    });
+                  }
+                },
+                onopen: null,
+                onmessage: null,
+                onerror: null,
+                onclose: null,
+              };
+              return socket;
+            }
+            return new NativeWebSocket(url, protocols);
+          };
+          window.WebSocket.CONNECTING = 0;
+          window.WebSocket.OPEN = 1;
+          window.WebSocket.CLOSING = 2;
+          window.WebSocket.CLOSED = 3;
+          window.WebSocket.prototype = NativeWebSocket.prototype;
         }
-      }, true);
-      window.addEventListener('unhandledrejection', function(event) {
-        if (event && event.reason && (
-          (typeof event.reason.message === 'string' && (event.reason.message.includes('WebSocket') || event.reason.message.includes('vite'))) ||
-          (typeof event.reason === 'string' && event.reason.includes('WebSocket'))
-        )) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-        }
-      }, true);
+
+        // Filter and suppress any residual Vite / WebSocket errors or unhandled rejections
+        var origError = console.error;
+        console.error = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            var arg = arguments[i];
+            if (arg) {
+              var str = String((arg && arg.message) || arg);
+              if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+                return;
+              }
+            }
+          }
+          return origError.apply(console, arguments);
+        };
+        var origWarn = console.warn;
+        console.warn = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            var arg = arguments[i];
+            if (arg) {
+              var str = String((arg && arg.message) || arg);
+              if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+                return;
+              }
+            }
+          }
+          return origWarn.apply(console, arguments);
+        };
+        window.addEventListener('error', function(event) {
+          if (event && (
+            (event.message && (event.message.includes('WebSocket') || event.message.includes('vite') || event.message.includes('closed without opened'))) ||
+            (event.filename && event.filename.includes('@vite/client'))
+          )) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event && event.reason) {
+            var str = String(event.reason.message || event.reason);
+            if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          }
+        }, true);
+      })();
     </script>
     <title>SecretCouples - End-to-End Encrypted Private Chat</title>
     <meta name="description" content="Ultra-private, end-to-end encrypted couple chat app with photo/video sharing, self-destructing messages, stealth calculator disguise, and instant message deletion." />

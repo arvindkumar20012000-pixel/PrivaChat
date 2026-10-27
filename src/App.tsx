@@ -72,8 +72,8 @@ export default function App() {
   // Room Credentials & Session
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomSecret, setRoomSecret] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>('Arvind');
-  const [partnerName, setPartnerName] = useState<string>('Meri Jaan');
+  const [userName, setUserName] = useState<string>('User 1');
+  const [partnerName, setPartnerName] = useState<string>('Partner');
   const [activeRole, setActiveRole] = useState<'you' | 'partner'>('you');
 
   // Messages & UI
@@ -110,8 +110,8 @@ export default function App() {
       const demoKey = 'demo-ultra-secure-key-2026';
       setRoomId(demoRoom);
       setRoomSecret(demoKey);
-      setUserName('Arvind');
-      setPartnerName('Girlfriend');
+      setUserName('User 1');
+      setPartnerName('Partner');
     }
   }, [roomId]);
 
@@ -130,8 +130,8 @@ export default function App() {
           setRoomSecret(k);
           if (role === 'partner') {
             setActiveRole('partner');
-            setUserName(lang === 'hi' ? 'गर्लफ्रेंड' : 'Girlfriend');
-            setPartnerName('Arvind');
+            setUserName(lang === 'hi' ? 'पार्टनर' : 'Partner');
+            setPartnerName(lang === 'hi' ? 'आप' : 'You');
           }
         }
       }
@@ -274,9 +274,14 @@ export default function App() {
       }
     };
 
-    // Server-Sent Events (SSE)
+    // Server-Sent Events (SSE) with graceful static fallback
     const sse = new EventSource(`/api/rooms/${roomId}/events`);
     sseRef.current = sse;
+
+    sse.onerror = () => {
+      // Gracefully close on static hosts (like Vercel CDN) where Firestore handles sync
+      sse.close();
+    };
 
     sse.addEventListener('new_message', async (e: MessageEvent) => {
       const data: EncryptedMessage = JSON.parse(e.data);
@@ -346,10 +351,14 @@ export default function App() {
       }
     });
 
-    // Fetch initial existing messages from server
+    // Fetch initial existing messages from server if available
     fetch(`/api/rooms/${roomId}/messages`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then(async (data) => {
+        if (!data) return;
         if (data.defaultTimer) {
           setDisappearingDuration(data.defaultTimer);
         }
@@ -362,7 +371,9 @@ export default function App() {
           setMessages(decryptedList);
         }
       })
-      .catch((err) => console.error('Failed to load room messages:', err));
+      .catch(() => {
+        // Graceful fallback: Firestore real-time listener loads messages directly
+      });
 
     // Initialize or join Firestore room document
     initOrJoinRoom(roomId, disappearingDuration)

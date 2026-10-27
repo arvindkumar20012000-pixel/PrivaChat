@@ -163,7 +163,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         {/* WhatsApp Avatar */}
         <div className="relative shrink-0 cursor-pointer" onClick={onOpenRoomModal}>
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold text-sm shadow">
-            {partnerName.slice(0, 2).toUpperCase() || 'GF'}
+            {partnerName && partnerName.trim() ? partnerName.slice(0, 2).toUpperCase() : '🔒'}
           </div>
           <div
             className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${

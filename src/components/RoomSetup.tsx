@@ -7,10 +7,13 @@ import {
   Languages,
   Sparkles,
   ArrowRight,
+  Eye,
   EyeOff,
   Flame,
   Calculator,
-  Download
+  Download,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { Language, translations } from '../translations';
 import { generateRoomId, generateRoomSecret } from '../utils/crypto';
@@ -39,8 +42,10 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
   const [tab, setTab] = useState<'create' | 'join'>('create');
   const [roomId, setRoomId] = useState('');
   const [roomSecret, setRoomSecret] = useState('');
-  const [userName, setUserName] = useState('Arvind');
-  const [partnerName, setPartnerName] = useState(lang === 'hi' ? 'मेरी जान' : 'Sweetheart');
+  const [showSecret, setShowSecret] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [partnerName, setPartnerName] = useState('');
 
   // Detect URL hash params if opened via shared link
   useEffect(() => {
@@ -61,8 +66,8 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
       setRoomId(hashRoom);
       setRoomSecret(hashKey);
       setTab('join');
-      setUserName(lang === 'hi' ? 'गर्लफ्रेंड' : 'Girlfriend');
-      setPartnerName('Arvind');
+      setUserName('');
+      setPartnerName('');
     } else {
       setRoomId(generateRoomId());
       setRoomSecret(generateRoomSecret());
@@ -76,8 +81,8 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
     onJoinRoom({
       roomId: roomId.trim(),
       roomSecret: roomSecret.trim(),
-      userName: userName.trim() || 'You',
-      partnerName: partnerName.trim() || 'Partner',
+      userName: userName.trim() || (lang === 'hi' ? 'आप' : 'You'),
+      partnerName: partnerName.trim() || (lang === 'hi' ? 'पार्टनर' : 'Partner'),
     });
   };
 
@@ -164,9 +169,60 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
           </button>
         </div>
 
+        {/* Simple How-It-Works Guide Toggle */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setShowGuide(!showGuide)}
+            className="w-full py-2 px-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold flex items-center justify-between transition"
+          >
+            <span className="flex items-center gap-1.5 text-rose-400">
+              <HelpCircle className="w-4 h-4" />
+              <span>{t.howItWorks}</span>
+            </span>
+            <span className="text-[11px] text-neutral-400">
+              {showGuide ? (lang === 'hi' ? 'बंद करें' : 'Close') : (lang === 'hi' ? 'समझें कैसे काम करेगा' : 'Read 3-step guide')}
+            </span>
+          </button>
+
+          {showGuide && (
+            <div className="mt-2 p-3.5 bg-neutral-900/90 border border-rose-900/40 rounded-2xl text-xs text-neutral-300 space-y-2 animate-in fade-in duration-200">
+              <h3 className="font-bold text-white text-xs flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                <span>{t.howItWorksTitle}</span>
+              </h3>
+              {lang === 'hi' ? (
+                <div className="space-y-1.5 text-[11px] leading-relaxed">
+                  <p>
+                    <strong className="text-white">1. रूम कोड:</strong> यह आपके और पार्टनर के चैट रूम का नंबर/पता है ताकि दोनों एक ही कमरे में आ सकें।
+                  </p>
+                  <p>
+                    <strong className="text-amber-400">2. सीक्रेट कोड (चाबी):</strong> यह डिजिटल ताला-चाबी है। आपके फोन से मैसेज, फोटो निकलने से पहले इसी चाबी से लॉक होते हैं। सर्वर भी इन्हें नहीं पढ़ सकता। पार्टनर का फोन इसी चाबी से अनलॉक करता है।
+                  </p>
+                  <p>
+                    <strong className="text-rose-400">3. पार्टनर को कैसे जोड़ें:</strong> अंदर जाकर बस <strong>"1-क्लिक सीक्रेट लिंक"</strong> कॉपी करें या व्हाट्सएप पर भेजें। पार्टनर उस लिंक पर सिर्फ टच (क्लिक) करेगी और बिना कुछ टाइप किए तुरंत जुड़ जाएगी!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 text-[11px] leading-relaxed">
+                  <p>
+                    <strong className="text-white">1. Room Code:</strong> Private room identifier that links both devices to the same conversation.
+                  </p>
+                  <p>
+                    <strong className="text-amber-400">2. Secret Key:</strong> The master encryption passphrase. Encrypts your messages & media client-side. Zero server logs.
+                  </p>
+                  <p>
+                    <strong className="text-rose-400">3. Connect Partner:</strong> Inside the chat, tap <strong>"1-Click Secret Link"</strong> or WhatsApp share. Your partner taps the link and joins instantly with zero technical setup!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-neutral-900/70 border border-neutral-800/80 rounded-3xl p-5 sm:p-6 backdrop-blur shadow-2xl space-y-4">
-          {/* User Names */}
+          {/* User Names / Aliases */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-semibold text-neutral-400 mb-1.5 block">
@@ -176,8 +232,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                placeholder="Name"
-                required
+                placeholder={lang === 'hi' ? 'उदा: आप / Me' : 'e.g., Me'}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-rose-500"
               />
             </div>
@@ -189,8 +244,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
                 type="text"
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
-                placeholder="Partner"
-                required
+                placeholder={lang === 'hi' ? 'उदा: पार्टनर / Partner' : 'e.g., Partner'}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-rose-500"
               />
             </div>
@@ -221,22 +275,49 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
               required
               className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-neutral-500 outline-none focus:border-rose-500"
             />
+            <p className="text-[10px] text-neutral-500 mt-1">
+              {lang === 'hi' ? 'कमरा संख्या (Room Code) - दोनों इसी एक कमरे में जुड़ेंगे' : 'Room ID - both connect to this space'}
+            </p>
           </div>
 
-          {/* Secret Key */}
+          {/* Secret Key with Eye Toggle */}
           <div>
-            <label className="text-[11px] font-semibold text-neutral-400 mb-1.5 flex items-center gap-1">
-              <Key className="w-3 h-3 text-amber-400" />
-              <span>{t.secretKey}</span>
-            </label>
-            <input
-              type="password"
-              value={roomSecret}
-              onChange={(e) => setRoomSecret(e.target.value)}
-              placeholder="Secret encryption passphrase"
-              required
-              className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-neutral-500 outline-none focus:border-rose-500"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-semibold text-neutral-400 flex items-center gap-1">
+                <Key className="w-3 h-3 text-amber-400" />
+                <span>{t.secretKey}</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowSecret(!showSecret)}
+                className="text-[10px] text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1"
+              >
+                {showSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                <span>{showSecret ? t.hideKey : t.showKey}</span>
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showSecret ? 'text' : 'password'}
+                value={roomSecret}
+                onChange={(e) => setRoomSecret(e.target.value)}
+                placeholder={lang === 'hi' ? 'गुप्त एन्क्रिप्शन कोड (चाबी)' : 'Secret encryption passphrase'}
+                required
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs font-mono text-amber-300 placeholder-neutral-500 outline-none focus:border-rose-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSecret(!showSecret)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1"
+                title={showSecret ? 'Hide' : 'Show'}
+              >
+                {showSecret ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-neutral-400 mt-1 flex items-start gap-1">
+              <Info className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+              <span>{t.keyExplanation}</span>
+            </p>
           </div>
 
           <button
