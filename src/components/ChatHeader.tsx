@@ -5,19 +5,21 @@ import {
   Clock,
   Trash2,
   Languages,
-  UserCheck,
   MoreVertical,
   QrCode,
   AlertOctagon,
   FileText,
   Download,
-  Phone,
-  Video,
   ArrowLeft,
   Sun,
   Moon,
   Palette,
-  Check
+  Check,
+  Lock,
+  Bell,
+  BellOff,
+  LogOut,
+  Search
 } from 'lucide-react';
 import { Language, translations } from '../translations';
 import { CamouflageMode, AppTheme } from '../types';
@@ -36,14 +38,17 @@ interface ChatHeaderProps {
   onNuclearWipe: () => void;
   disappearingDuration: number;
   onSelectTimer: (seconds: number) => void;
-  activeRole: 'you' | 'partner';
-  onToggleRole: () => void;
   onOpenInstallModal: () => void;
   isInstalled: boolean;
   theme: AppTheme;
   themeColors: ThemeColors;
   onSelectTheme: (newTheme: AppTheme) => void;
   onExitRoom: () => void;
+  onLockApp: () => void;
+  notificationsEnabled?: boolean;
+  onToggleNotifications?: () => void;
+  isSearching?: boolean;
+  onToggleSearch?: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -59,21 +64,23 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onNuclearWipe,
   disappearingDuration,
   onSelectTimer,
-  activeRole,
-  onToggleRole,
   onOpenInstallModal,
   isInstalled,
   theme,
   themeColors,
   onSelectTheme,
   onExitRoom,
+  onLockApp,
+  notificationsEnabled,
+  onToggleNotifications,
+  isSearching,
+  onToggleSearch,
 }) => {
   const t = translations[lang];
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showWipeDialog, setShowWipeDialog] = useState(false);
-  const [callAlert, setCallAlert] = useState<string | null>(null);
 
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -128,15 +135,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     300: t.timer5m,
     3600: t.timer1h,
     86400: t.timer24h,
-  };
-
-  const handleCallClick = (type: 'audio' | 'video') => {
-    setCallAlert(
-      lang === 'hi'
-        ? `${type === 'video' ? 'वीडियो' : 'ऑडियो'} कॉल सिम्युलेटेड है। पूर्ण गोपनीयता सक्रिय है।`
-        : `${type === 'video' ? 'Video' : 'Voice'} call simulated. Stealth E2EE active.`
-    );
-    setTimeout(() => setCallAlert(null), 3000);
   };
 
   return (
@@ -209,24 +207,31 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
       {/* Right: Actions Bar */}
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-        {/* WhatsApp Simulated Video Call */}
-        <button
-          onClick={() => handleCallClick('video')}
-          className="p-2 rounded-full hover:bg-black/10 transition"
-          title={t.videoCall}
-          aria-label={t.videoCall}
-        >
-          <Video className="w-4 h-4" style={{ color: themeColors.headerText }} />
-        </button>
+        {/* Search Chat Messages Button */}
+        {onToggleSearch && (
+          <button
+            onClick={onToggleSearch}
+            className={`p-2 rounded-full transition ${
+              isSearching
+                ? 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/50'
+                : 'hover:bg-black/10'
+            }`}
+            style={{ color: isSearching ? undefined : themeColors.headerText }}
+            title={t.search}
+            aria-label={t.search}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        )}
 
-        {/* WhatsApp Simulated Voice Call */}
+        {/* Quick App Lock Button */}
         <button
-          onClick={() => handleCallClick('audio')}
-          className="p-2 rounded-full hover:bg-black/10 transition"
-          title={t.voiceCall}
-          aria-label={t.voiceCall}
+          onClick={onLockApp}
+          className="p-2 rounded-full hover:bg-black/10 text-rose-400 transition"
+          title={t.lockNow}
+          aria-label={t.lockNow}
         >
-          <Phone className="w-4 h-4" style={{ color: themeColors.headerText }} />
+          <Lock className="w-4 h-4" />
         </button>
 
         {/* Prominent Install App Button */}
@@ -326,6 +331,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               ref={moreMenuRef}
               className="absolute right-0 top-12 bg-neutral-900 border border-neutral-800 rounded-2xl p-2 shadow-2xl z-50 w-56 space-y-1 text-xs text-white animate-in zoom-in-95 duration-100"
             >
+              {/* Search in Chat */}
+              {onToggleSearch && (
+                <button
+                  onClick={() => {
+                    onToggleSearch();
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-800 text-neutral-200 flex items-center gap-2"
+                >
+                  <Search className="w-4 h-4 text-emerald-400" />
+                  <span>{t.search}</span>
+                </button>
+              )}
+
               {/* Install option inside menu */}
               <button
                 onClick={() => {
@@ -350,18 +369,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 <span>{t.invitePartner}</span>
               </button>
 
-              {/* Switch Role / Test Partner */}
+              {/* Lock App Now (Instant Security PIN Lock) */}
               <button
                 onClick={() => {
-                  onToggleRole();
+                  onLockApp();
                   setShowMoreMenu(false);
                 }}
-                className="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-800 text-neutral-200 flex items-center gap-2"
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-800 text-rose-300 flex items-center gap-2"
               >
-                <UserCheck className="w-4 h-4 text-sky-400" />
-                <span>
-                  {t.switchRole} ({activeRole === 'you' ? t.you : t.partner})
-                </span>
+                <Lock className="w-4 h-4 text-rose-400" />
+                <span>{t.lockNow}</span>
               </button>
 
               {/* Disappearing Timer */}
@@ -426,6 +443,34 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 <span>{t.notesMode}</span>
               </button>
 
+              {/* Notifications Toggle */}
+              {onToggleNotifications && (
+                <button
+                  onClick={() => {
+                    onToggleNotifications();
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-neutral-800 text-neutral-200 flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    {notificationsEnabled ? (
+                      <Bell className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <BellOff className="w-4 h-4 text-neutral-400" />
+                    )}
+                    <span>{t.notifications}</span>
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                      notificationsEnabled
+                        ? 'bg-emerald-500/20 text-emerald-300'
+                        : 'bg-neutral-800 text-neutral-400'
+                    }`}
+                  >
+                    {notificationsEnabled ? (lang === 'hi' ? 'चालू' : 'ON') : (lang === 'hi' ? 'बंद' : 'OFF')}
+                  </span>
+                </button>
+              )}
+
               {/* Language Switch */}
               <button
                 onClick={() => {
@@ -439,6 +484,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               </button>
 
               <div className="border-t border-neutral-800 my-1" />
+
+              {/* Leave Room (Safe Exit) */}
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  onExitRoom();
+                }}
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-950/40 text-amber-300 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4 text-amber-400" />
+                <span>{t.leaveRoom}</span>
+              </button>
 
               {/* Wipe All */}
               <button
@@ -455,13 +512,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           )}
         </div>
       </div>
-
-      {/* Call simulated notification banner */}
-      {callAlert && (
-        <div className="fixed top-18 left-1/2 -translate-x-1/2 bg-neutral-900 border border-emerald-500/50 text-emerald-300 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-          {callAlert}
-        </div>
-      )}
 
       {/* Nuclear Wipe Confirmation Dialog */}
       {showWipeDialog && (

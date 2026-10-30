@@ -94,13 +94,13 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col justify-between p-4 sm:p-6 font-sans relative overflow-hidden select-none">
       {/* Background ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Bar */}
       <header className="max-w-md w-full mx-auto flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center text-white shadow-md shadow-rose-950">
-            <Heart className="w-4 h-4 fill-white" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-950">
+            <Lock className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-sm tracking-tight text-white">{t.appName}</span>
         </div>
@@ -110,7 +110,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
             <button
               type="button"
               onClick={onOpenInstallModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-300 hover:bg-rose-600/30 text-xs font-semibold transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/30 text-xs font-semibold transition"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{t.installApp}</span>
@@ -131,7 +131,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
       {/* Center Setup Card */}
       <main className="max-w-md w-full mx-auto my-auto z-10 py-6">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-3">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>{t.e2eeBadge}</span>
           </div>
@@ -150,7 +150,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
             onClick={() => setTab('create')}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold transition ${
               tab === 'create'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'bg-emerald-600 text-white shadow'
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
@@ -161,7 +161,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
             onClick={() => setTab('join')}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold transition ${
               tab === 'join'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'bg-emerald-600 text-white shadow'
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
@@ -232,7 +232,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                placeholder={lang === 'hi' ? 'उदा: आप / Me' : 'e.g., Me'}
+                placeholder={lang === 'hi' ? 'उपनाम (वैकल्पिक)' : 'Alias (optional)'}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-rose-500"
               />
             </div>
@@ -244,7 +244,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
                 type="text"
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
-                placeholder={lang === 'hi' ? 'उदा: पार्टनर / Partner' : 'e.g., Partner'}
+                placeholder={lang === 'hi' ? 'उपनाम (वैकल्पिक)' : 'Alias (optional)'}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-rose-500"
               />
             </div>
@@ -254,14 +254,14 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-[11px] font-semibold text-neutral-400 flex items-center gap-1">
-                <Lock className="w-3 h-3 text-rose-400" />
+                <Lock className="w-3 h-3 text-emerald-400" />
                 <span>{t.roomCode}</span>
               </label>
               {tab === 'create' && (
                 <button
                   type="button"
                   onClick={handleGenerateNew}
-                  className="text-[10px] text-rose-400 hover:text-rose-300 font-medium"
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium"
                 >
                   {lang === 'hi' ? 'नया कोड जनरेट करें' : 'Generate new'}
                 </button>
@@ -273,7 +273,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
               onChange={(e) => setRoomId(e.target.value)}
               placeholder="e.g. secret-nest-4821"
               required
-              className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-neutral-500 outline-none focus:border-rose-500"
+              className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-neutral-500 outline-none focus:border-emerald-500"
             />
             <p className="text-[10px] text-neutral-500 mt-1">
               {lang === 'hi' ? 'कमरा संख्या (Room Code) - दोनों इसी एक कमरे में जुड़ेंगे' : 'Room ID - both connect to this space'}
@@ -303,7 +303,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
                 onChange={(e) => setRoomSecret(e.target.value)}
                 placeholder={lang === 'hi' ? 'गुप्त एन्क्रिप्शन कोड (चाबी)' : 'Secret encryption passphrase'}
                 required
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs font-mono text-amber-300 placeholder-neutral-500 outline-none focus:border-rose-500"
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs font-mono text-amber-300 placeholder-neutral-500 outline-none focus:border-emerald-500"
               />
               <button
                 type="button"
@@ -322,7 +322,7 @@ export const RoomSetup: React.FC<RoomSetupProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-xl shadow-rose-950 flex items-center justify-center gap-2 transition active:scale-98 mt-2"
+            className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xl shadow-emerald-950 flex items-center justify-center gap-2 transition active:scale-98 mt-2"
           >
             <span>{t.joinButton}</span>
             <ArrowRight className="w-4 h-4" />

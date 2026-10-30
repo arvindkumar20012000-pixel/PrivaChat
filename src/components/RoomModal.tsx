@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
+import { generateQrDataUrl } from '../utils/qr';
 import {
   Copy,
   Check,
@@ -46,22 +46,18 @@ export const RoomModal: React.FC<RoomModalProps> = ({
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [fingerprint, setFingerprint] = useState<string>('');
 
-  // Generate invite link containing room and key in hash and role=partner for recipient
+  // Generate 1-click real invite link containing room and key in hash
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const inviteLink = `${origin}/#room=${encodeURIComponent(roomId)}&key=${encodeURIComponent(roomSecret)}&role=partner`;
+  const inviteLink = `${origin}/#room=${encodeURIComponent(roomId)}&key=${encodeURIComponent(roomSecret)}`;
 
   useEffect(() => {
-    // Generate QR code
-    QRCode.toDataURL(inviteLink, {
-      margin: 1,
-      width: 180,
-      color: {
-        dark: '#ffffff',
-        light: '#18181b',
-      },
-    })
-      .then((url) => setQrDataUrl(url))
-      .catch((err) => console.error('QR generation error:', err));
+    // Generate QR code safely using pure ESM generator
+    try {
+      const url = generateQrDataUrl(inviteLink);
+      setQrDataUrl(url);
+    } catch (err) {
+      console.error('QR generation error:', err);
+    }
 
     // Calculate fingerprint
     generateFingerprint(roomSecret).then(setFingerprint);

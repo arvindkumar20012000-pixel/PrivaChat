@@ -66,14 +66,25 @@
           window.WebSocket.prototype = NativeWebSocket.prototype;
         }
 
-        // Filter and suppress any residual Vite / WebSocket errors or unhandled rejections
+        // Filter and suppress any residual Vite / WebSocket errors, extension injection errors or unhandled rejections
+        function shouldSuppressError(str) {
+          if (!str) return false;
+          return str.includes('WebSocket') ||
+                 str.includes('vite') ||
+                 str.includes('closed without opened') ||
+                 str.includes('chrome-extension://') ||
+                 str.includes('Blocked a frame with origin') ||
+                 str.includes('inpage.js') ||
+                 str.includes("Failed to read a named property 'origin'");
+        }
+
         var origError = console.error;
         console.error = function() {
           for (var i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             if (arg) {
-              var str = String((arg && arg.message) || arg);
-              if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+              var str = String((arg && arg.stack) || (arg && arg.message) || arg);
+              if (shouldSuppressError(str)) {
                 return;
               }
             }
@@ -85,8 +96,8 @@
           for (var i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             if (arg) {
-              var str = String((arg && arg.message) || arg);
-              if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+              var str = String((arg && arg.stack) || (arg && arg.message) || arg);
+              if (shouldSuppressError(str)) {
                 return;
               }
             }
@@ -94,10 +105,10 @@
           return origWarn.apply(console, arguments);
         };
         window.addEventListener('error', function(event) {
-          if (event && (
-            (event.message && (event.message.includes('WebSocket') || event.message.includes('vite') || event.message.includes('closed without opened'))) ||
-            (event.filename && event.filename.includes('@vite/client'))
-          )) {
+          var msg = event ? String(event.message || '') : '';
+          var file = event ? String(event.filename || '') : '';
+          var stack = (event && event.error) ? String(event.error.stack || '') : '';
+          if (shouldSuppressError(msg) || shouldSuppressError(file) || shouldSuppressError(stack)) {
             event.stopImmediatePropagation();
             event.preventDefault();
             return true;
@@ -105,8 +116,8 @@
         }, true);
         window.addEventListener('unhandledrejection', function(event) {
           if (event && event.reason) {
-            var str = String(event.reason.message || event.reason);
-            if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) {
+            var str = String(event.reason.stack || event.reason.message || event.reason);
+            if (shouldSuppressError(str)) {
               event.stopImmediatePropagation();
               event.preventDefault();
             }
@@ -114,17 +125,17 @@
         }, true);
       })();
     </script>
-    <title>SecretCouples - End-to-End Encrypted Private Chat</title>
-    <meta name="description" content="Ultra-private, end-to-end encrypted couple chat app with photo/video sharing, self-destructing messages, stealth calculator disguise, and instant message deletion." />
-    <meta property="og:title" content="SecretCouples - End-to-End Encrypted Private Chat" />
-    <meta property="og:description" content="Ultra-private, end-to-end encrypted couple chat app with photo/video sharing, self-destructing messages, stealth calculator disguise, and instant message deletion." />
+    <title>CipherChat - End-to-End Encrypted Private Chat</title>
+    <meta name="description" content="Ultra-secure, 100% end-to-end encrypted private chat app for anyone. Features 256-bit AES client-side encryption, customizable 4-digit PIN lock, permanent encrypted message retention, optional stealth disguise, and zero data leakage." />
+    <meta property="og:title" content="CipherChat - End-to-End Encrypted Private Chat" />
+    <meta property="og:description" content="Ultra-secure, 100% end-to-end encrypted private chat app for anyone. Features 256-bit AES client-side encryption, customizable 4-digit PIN lock, permanent encrypted message retention, optional stealth disguise, and zero data leakage." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="theme-color" content="#008069" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="SecretCouples" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CipherChat" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />

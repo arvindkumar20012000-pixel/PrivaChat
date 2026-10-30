@@ -292,3 +292,22 @@ export async function updateTypingStatusInFirestore(
     // Non-fatal, typing indicators can fail gracefully
   }
 }
+
+/**
+ * Fetches specific message metadata from Firestore
+ */
+export async function fetchMessageMetadataFromFirestore(
+  roomId: string,
+  messageId: string
+): Promise<Partial<EncryptedMessage> | null> {
+  const msgPath = `rooms/${roomId}/messages/${messageId}`;
+  try {
+    const msgRef = doc(db, 'rooms', roomId, 'messages', messageId);
+    const snap = await getDoc(msgRef);
+    if (!snap.exists()) return null;
+    return snap.data() as EncryptedMessage;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, msgPath);
+    return null;
+  }
+}

@@ -195,6 +195,34 @@ app.post('/api/rooms/:roomId/messages/:messageId/viewed', (req: Request, res: Re
   res.json({ success: true, messageId, expiresAt: msg.expiresAt });
 });
 
+// API: Get message metadata info (WhatsApp-style delivery and read receipts info)
+app.get('/api/rooms/:roomId/messages/:messageId/info', (req: Request, res: Response) => {
+  const { roomId, messageId } = req.params;
+  const room = getOrCreateRoom(roomId);
+  const msg = room.messages.find((m) => m.id === messageId);
+
+  if (!msg) {
+    res.status(404).json({ error: 'Message not found' });
+    return;
+  }
+
+  res.json({
+    id: msg.id,
+    senderId: msg.senderId,
+    senderName: msg.senderName,
+    type: msg.type,
+    timestamp: msg.timestamp,
+    deliveredAt: msg.timestamp,
+    viewed: !!msg.viewed,
+    viewedAt: msg.viewedAt || null,
+    isViewOnce: !!msg.isViewOnce,
+    disappearingTimer: msg.disappearingTimer || 0,
+    expiresAt: msg.expiresAt || null,
+    reactions: msg.reactions || {},
+    payloadSize: msg.payload ? JSON.stringify(msg.payload).length : 0,
+  });
+});
+
 // API: Mark all messages as read by partner (Read receipts / Double checkmarks)
 app.post('/api/rooms/:roomId/read-all', (req: Request, res: Response) => {
   const { roomId } = req.params;

@@ -14,11 +14,11 @@ export default defineConfig(() => {
         includeAssets: ['apple-touch-icon.png', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'SecretCouples - End-to-End Encrypted Private Chat',
-          short_name: 'SecretCouples',
-          description: 'Ultra-private, end-to-end encrypted couple chat app with photo/video sharing, self-destructing messages, and stealth disguise.',
-          theme_color: '#0a0a0a',
-          background_color: '#0a0a0a',
+          name: 'CipherChat - End-to-End Encrypted Private Chat',
+          short_name: 'CipherChat',
+          description: 'Ultra-secure, 100% end-to-end encrypted private chat app for anyone.',
+          theme_color: '#008069',
+          background_color: '#ffffff',
           display: 'standalone',
           start_url: '/',
           scope: '/',
@@ -43,6 +43,9 @@ export default defineConfig(() => {
             },
           ],
         },
+        workbox: {
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        },
         devOptions: {
           enabled: true,
           type: 'module',
@@ -51,7 +54,7 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname || '.'),
       },
     },
     server: {

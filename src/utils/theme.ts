@@ -32,14 +32,14 @@ export interface ThemeColors {
 }
 
 export function getSystemTheme(): 'whatsapp' | 'light' {
-  if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    return 'light';
+  if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'whatsapp';
   }
-  return 'whatsapp';
+  return 'light';
 }
 
 export function resolveTheme(theme: AppTheme): ThemeColors {
-  const active = theme === 'system' ? getSystemTheme() : theme;
+  const active = theme === 'system' ? getSystemTheme() : (theme || 'light');
 
   if (active === 'light') {
     return {
